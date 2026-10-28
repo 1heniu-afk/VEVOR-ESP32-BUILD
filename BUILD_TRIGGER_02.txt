@@ -1,0 +1,1 @@
+Sprawdzenie obu kompilatorow na GitHub Actions w publicznym repozytorium.

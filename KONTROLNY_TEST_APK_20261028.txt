@@ -1,0 +1,1 @@
+Ponowne budowanie pilota po poprawieniu komunikatu o utracie Bluetooth na main.
