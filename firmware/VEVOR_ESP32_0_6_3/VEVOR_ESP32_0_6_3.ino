@@ -697,8 +697,8 @@ void setup(){
  phoneNotify->addDescriptor(new BLE2902());control->start();
  // OTA is signed (SHA256/RSA2048) to prevent nearby BLE clients flashing foreign code.
  bleOta.begin(localServer, true);
- if(!bleOta.setKey(OTA_RSA_PUBLIC_KEY,strlen(OTA_RSA_PUBLIC_KEY))){
-   Serial.println("ERROR: OTA public key invalid; halting to avoid insecure OTA");
+ if(bleOta.setKey(OTA_RSA_PUBLIC_KEY,strlen(OTA_RSA_PUBLIC_KEY))){
+   Serial.println("ERROR: OTA public key parsing failed; halting to avoid insecure OTA");
    while(true)delay(1000);
  }
  bleOta.setCallbacks(new HeaterOtaCallbacks());
