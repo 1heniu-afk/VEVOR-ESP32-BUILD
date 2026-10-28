@@ -3,7 +3,7 @@
 const UUID={svc:'d7b67a20-9eb5-4f13-9ea5-6bc59a0a9800',rx:'d7b67a21-9eb5-4f13-9ea5-6bc59a0a9800',tx:'d7b67a22-9eb5-4f13-9ea5-6bc59a0a9800'};
 const $=id=>document.getElementById(id),enc=new TextEncoder(),dec=new TextDecoder();
 let device=null,writeCh=null,readCh=null,busy=false,state=null,ticker=null,reading=false;
-let gearTarget=null,gearSince=0,gearFeedback="";
+let gearTarget=null,gearSince=0,gearFeedback="",gearOldResult="";
 let gearButtons=[];
 function log(x){const p=$('log');p.textContent=new Date().toLocaleTimeString()+' '+x+'\n'+p.textContent.slice(0,2500);}
 const value=(x,unit='')=>x===undefined||x===null||Number.isNaN(Number(x))?'—':String(x)+unit;
@@ -17,7 +17,7 @@ function renderPower(o){
     if(valid && current===gearTarget){
       gearFeedback='H'+gearTarget+' POTWIERDZONE — poziom osiągnięty.';
       gearTarget=null;
-    }else if(['H_ODRZUCONE','H_ZABLOKOWANE','H_PRZERWANE'].includes(o.result)){
+    }else if(['H_ODRZUCONE','H_ZABLOKOWANE','H_PRZERWANE'].includes(o.result) && o.result!==gearOldResult){
       gearFeedback='Zmiana odrzucona ('+o.result+'). Bieg nie został zmieniony.';
       gearTarget=null;
     }else if(Date.now()-gearSince>75000){
@@ -79,7 +79,7 @@ for(let i=1;i<=6;i++){
     }
     if(gearTarget!==null){log('Zmiana H już trwa. Poczekaj na potwierdzenie.');return;}
     if(Number(state.gear)===i){gearFeedback='H'+i+' jest już aktualnym poziomem.';renderPower(state);return;}
-    gearTarget=i;gearSince=Date.now();gearFeedback='';
+    gearTarget=i;gearSince=Date.now();gearOldResult=state.result||'';gearFeedback='';
     renderPower(state);
     command('H'+i);
   };
