@@ -138,7 +138,7 @@ public final class MainActivity extends Activity {
   }
   private void readStatus(){if(gatt==null||readChar==null)return;
     if(!busy.compareAndSet(false,true))return;
-    try{if(!gatt.readCharacteristic(readChar)){busy.set(false);log("Błąd rozpoczęcia odczytu")}}catch(SecurityException e){busy.set(false);log("Brak uprawnień odczytu");}
+    try{if(!gatt.readCharacteristic(readChar)){busy.set(false);log("Błąd rozpoczęcia odczytu");}}catch(SecurityException e){busy.set(false);log("Brak uprawnień odczytu");}
   }
   @Override protected void onDestroy(){closeBle();if(web!=null)web.destroy();super.onDestroy();}
 }
