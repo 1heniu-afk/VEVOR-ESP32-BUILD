@@ -3,6 +3,16 @@
 <title>VEVOR ESP32 • Pilot</title>
 <style>
 :root{color-scheme:dark;--bg:#081522;--card:#14283a;--line:#37576a;--accent:#29d1aa;--muted:#a1c7c6;--text:#edfff6}*{box-sizing:border-box}body{background:var(--bg);color:var(--text);font:16px system-ui,Arial;margin:0}main{max-width:820px;margin:auto;padding:14px 13px 50px}h1{font-size:22px;margin:8px 0}h2{font-size:17px;margin:0 0 12px}p{line-height:1.4}small,.muted{color:var(--muted)}section{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:14px;margin:13px 0}.line{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tile{background:#1b3547;border-radius:10px;padding:12px}.value{font-size:27px;font-weight:800;color:var(--accent);margin-top:4px}button,select,input{font:inherit;border:1px solid var(--line);border-radius:9px;padding:10px;background:#1b3547;color:var(--text)}input[type=number]{width:92px}input[type=password]{min-width:120px;max-width:180px}select{max-width:100%}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.action{background:#1e5f58;border-color:var(--accent);font-weight:700}.danger{border-color:#d78083;color:#ffc4c6}.status{font-weight:700;color:var(--accent)}.warn{color:#f6c476}.log{font:12px ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:230px;overflow:auto;border-radius:9px;background:#091925;padding:9px}hr{border:0;border-top:1px solid var(--line);margin:15px 0}label{display:block;font-size:14px;color:var(--muted);margin-bottom:5px}.pill{border-radius:14px;background:#18394b;padding:5px 9px;font-size:12px;display:inline-block}button:focus-visible{outline:2px solid var(--accent)}
+.gear-panel{background:#0b2736;border:1px solid #4e788a;border-radius:12px;padding:13px;margin:11px 0 14px}
+.gear-reading{font-size:25px;font-weight:800;color:#39e2b8;line-height:1.25}
+.gear-pending{margin-top:6px;color:#e0f0eb;font-size:15px;line-height:1.35}
+.gear-pending.warn{color:#ffca80}
+.gear-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0}
+.gear-grid button{font-size:22px;font-weight:800;min-height:57px}
+.gear-grid button.active{border:3px solid #b9ffe9;background:#08775f;color:white;box-shadow:0 0 0 2px #14604b inset}
+.gear-grid button.waiting{border:3px solid #ffd479;background:#5e491e;color:white}
+.gear-grid button:disabled{opacity:.45}
+main{padding-top:calc(28px + env(safe-area-inset-top, 0px))}
 </style></head><body><main>
 <h1>VEVOR • ESP32</h1><p class="muted">Pilot Bluetooth dla Heater5439 · sterownik 0.6.3 · bez Wi-Fi</p>
 <section><h2>Połączenie</h2><div class="line"><button id="connect" class="action">Połącz ESP32</button><button id="disconnect">Rozłącz</button><span class="status" id="conn">Niepołączony</span></div><p class="muted" id="help">Natywne Bluetooth Android. ESP32 musi być włączony i widoczny.</p>
@@ -14,9 +24,9 @@
 <div class="tile"><small>Ogrzewanie</small><div class="value" id="heaterstate">—</div><small id="gear">Poziom —</small></div>
 <div class="tile"><small>Na zewnątrz (DS18B20)</small><div class="value" id="outside">—</div><small>Opcjonalna sonda</small></div>
 </div><p id="health" class="warn">Czekam na aktualny raport Webasto…</p><button id="refresh">Odśwież teraz</button></section>
-<section><h2>Sterowanie ręczne</h2><p class="muted">Polecenia wymagają świeżego stanu nagrzewnicy. Nie powtarzaj START/STOP przy braku potwierdzenia.</p>
+<section><h2>Sterowanie ręczne</h2><div class="gear-panel" aria-live="polite"><div id="gearReading" class="gear-reading">BIEG: BRAK DANYCH</div><div id="gearPending" class="gear-pending">Brak potwierdzonego poziomu</div></div><p class="muted">Podświetlony na zielono = aktualny, potwierdzony bieg. Żółty = zmiana oczekuje na potwierdzenie. Nie ponawiaj poleceń podczas oczekiwania.</p>
 <div class="line"><button class="action" data-cmd="START" data-confirm="Wysłać START do nagrzewnicy?">START</button><button class="danger" data-cmd="STOP" data-confirm="Wysłać STOP (fabryczne wychładzanie) do nagrzewnicy?">STOP</button></div>
-<p><small>Poziom mocy</small></p><div class="line" id="gears"></div>
+<p><small>Poziom mocy</small></p><div class="gear-grid" id="gears"></div>
 <div class="line"><button data-cmd="UP">H +</button><button data-cmd="DOWN">H −</button><span class="pill" id="alpine">Alpejski: —</span><button data-cmd="ALPINE" data-confirm="Przełączyć tryb alpejski tylko po odczycie stanu pieca?">Zmień alpejski</button></div>
 <p class="muted">Tryb alpejski: rozkaz A5 pochodzi z działającej aplikacji VEVOR 1.5. ESP32 odczytuje nowy stan po pojedynczym poleceniu; nie ponawia ślepo przełączenia.</p>
 </section>
