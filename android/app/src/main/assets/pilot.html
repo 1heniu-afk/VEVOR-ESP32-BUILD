@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VEVOR ESP32 • Pilot</title>
+<style>
+:root{color-scheme:dark;--bg:#081522;--card:#14283a;--line:#37576a;--accent:#29d1aa;--muted:#a1c7c6;--text:#edfff6}*{box-sizing:border-box}body{background:var(--bg);color:var(--text);font:16px system-ui,Arial;margin:0}main{max-width:820px;margin:auto;padding:14px 13px 50px}h1{font-size:22px;margin:8px 0}h2{font-size:17px;margin:0 0 12px}p{line-height:1.4}small,.muted{color:var(--muted)}section{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:14px;margin:13px 0}.line{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tile{background:#1b3547;border-radius:10px;padding:12px}.value{font-size:27px;font-weight:800;color:var(--accent);margin-top:4px}button,select,input{font:inherit;border:1px solid var(--line);border-radius:9px;padding:10px;background:#1b3547;color:var(--text)}input[type=number]{width:92px}input[type=password]{min-width:120px;max-width:180px}select{max-width:100%}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.action{background:#1e5f58;border-color:var(--accent);font-weight:700}.danger{border-color:#d78083;color:#ffc4c6}.status{font-weight:700;color:var(--accent)}.warn{color:#f6c476}.log{font:12px ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:230px;overflow:auto;border-radius:9px;background:#091925;padding:9px}hr{border:0;border-top:1px solid var(--line);margin:15px 0}label{display:block;font-size:14px;color:var(--muted);margin-bottom:5px}.pill{border-radius:14px;background:#18394b;padding:5px 9px;font-size:12px;display:inline-block}button:focus-visible{outline:2px solid var(--accent)}
+</style></head><body><main>
+<h1>VEVOR • ESP32</h1><p class="muted">Pilot Bluetooth dla Heater5439 · sterownik 0.6.3 · bez Wi-Fi</p>
+<section><h2>Połączenie</h2><div class="line"><button id="connect" class="action">Połącz ESP32</button><button id="disconnect">Rozłącz</button><span class="status" id="conn">Niepołączony</span></div><p class="muted" id="help">Natywne Bluetooth Android. ESP32 musi być włączony i widoczny.</p>
+<div class="line"><label>Kod dostępu <input id="key" type="password" placeholder="8-cyfrowy PIN ESP32" autocomplete="off"></label><button id="unlock">Odblokuj pilot</button></div>
+<div class="line"><button id="arm">Włącz sterowanie</button><button id="disarm">Zablokuj sterowanie</button></div></section>
+<section><h2>Aktualne dane</h2><div class="grid">
+<div class="tile"><small>Temperatura kabiny</small><div class="value" id="room">—</div><small id="source">Źródło —</small></div>
+<div class="tile"><small>Temperatura korpusu</small><div class="value" id="case">—</div><small>Fabryczny czujnik VEVOR</small></div>
+<div class="tile"><small>Ogrzewanie</small><div class="value" id="heaterstate">—</div><small id="gear">Poziom —</small></div>
+<div class="tile"><small>Na zewnątrz (DS18B20)</small><div class="value" id="outside">—</div><small>Opcjonalna sonda</small></div>
+</div><p id="health" class="warn">Czekam na aktualny raport Webasto…</p><button id="refresh">Odśwież teraz</button></section>
+<section><h2>Sterowanie ręczne</h2><p class="muted">Polecenia wymagają świeżego stanu nagrzewnicy. Nie powtarzaj START/STOP przy braku potwierdzenia.</p>
+<div class="line"><button class="action" data-cmd="START" data-confirm="Wysłać START do nagrzewnicy?">START</button><button class="danger" data-cmd="STOP" data-confirm="Wysłać STOP (fabryczne wychładzanie) do nagrzewnicy?">STOP</button></div>
+<p><small>Poziom mocy</small></p><div class="line" id="gears"></div>
+<div class="line"><button data-cmd="UP">H +</button><button data-cmd="DOWN">H −</button><span class="pill" id="alpine">Alpejski: —</span><button data-cmd="ALPINE" data-confirm="Przełączyć tryb alpejski tylko po odczycie stanu pieca?">Zmień alpejski</button></div>
+<p class="muted">Tryb alpejski: rozkaz A5 pochodzi z działającej aplikacji VEVOR 1.5. ESP32 odczytuje nowy stan po pojedynczym poleceniu; nie ponawia ślepo przełączenia.</p>
+</section>
+<section><h2>Termostat ESP32</h2><p class="muted">Bez dodatkowych sond korzysta z temperatury kabiny przesyłanej przez VEVOR. Automatyka pracuje na ESP32, nawet bez telefonu.</p>
+<div class="line"><label>Temperatura docelowa °C <input id="target" type="number" min="5" max="35" step="0.5" value="22"></label><label>Histereza ±°C <select id="band"><option value="1">1</option><option value="1.5" selected>1,5</option><option value="2">2</option><option value="2.5">2,5</option><option value="3">3</option><option value="3.5">3,5</option><option value="4">4</option><option value="4.5">4,5</option><option value="5">5</option></select></label></div>
+<div class="line"><button id="saveTarget">Zapisz temperaturę</button><button id="saveBand">Zapisz histerezę</button></div>
+<p><small>Źródło pomiaru kabiny</small></p><select id="tempsource"><option value="AUTO">Automatycznie: średnia lub VEVOR</option><option value="WEB">Temperatura z VEVOR</option><option value="DS">Sonda DS18B20 wewnętrzna</option><option value="AVG">Średnia dwóch pomiarów</option></select><button id="saveSource">Zastosuj</button>
+<p class="muted" id="tempinfo">W trybie AUTO: średnia z dwóch pomiarów albo dostępna sonda. Przy ręcznym wyborze WEB, DS lub AVG brak wymaganego czujnika wstrzymuje automatykę.</p>
+<div class="line"><button class="action" data-cmd="THERMO:ON">Włącz termostat</button><button class="danger" data-cmd="THERMO:OFF">Wyłącz termostat</button></div>
+<p><small>Przypisanie sond po podłączeniu:</small></p><div class="line"><button data-cmd="IN:0">Sonda 0 = kabina</button><button data-cmd="IN:1">Sonda 1 = kabina</button></div>
+</section>
+<section><h2>Statystyki i diagnostyka</h2><div class="grid"><div class="tile"><small>Czas pracy palnika</small><div class="value" id="runtime">—</div></div><div class="tile"><small>Zużycie ON (szacunek)</small><div class="value" id="fuel">—</div></div><div class="tile"><small>Liczba rozpaleń (wykryta)</small><div class="value" id="starts">—</div></div><div class="tile"><small>Poprawne ramki BLE</small><div class="value" id="frames">—</div></div></div><p class="muted">Nie jest to pomiar rzeczywistego przepływu paliwa.</p><div id="log" class="log">Brak zdarzeń</div></section>
+</main><script src="pilot.js"></script></body></html>

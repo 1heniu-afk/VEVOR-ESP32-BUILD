@@ -1,0 +1,64 @@
+name: VEVOR test - ESP32 BIN and Android APK
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  esp32-firmware:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-arduino-cli@v2
+      - name: Install ESP32 board and libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli core install esp32:esp32@3.3.12 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli lib update-index
+          arduino-cli lib install 'OneWire@2.3.8' 'DallasTemperature@4.0.6' 'BLEOTA@1.0.6'
+      - name: Compile ESP32 4MB Minimal SPIFFS
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p firmware-output
+          arduino-cli compile --fqbn esp32:esp32:esp32:PartitionScheme=min_spiffs --export-binaries --output-dir firmware-output firmware/VEVOR_ESP32_0_6_3 2>&1 | tee firmware-compile.log
+          sha256sum firmware-output/*.bin > firmware-sha256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vevor-esp32-063-bin
+          path: |
+            firmware-output/
+            firmware-compile.log
+            firmware-sha256.txt
+          if-no-files-found: warn
+  android-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Assemble installable test APK
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle -p android --no-daemon :app:assembleDebug 2>&1 | tee android-compile.log
+          sha256sum android/app/build/outputs/apk/debug/*.apk > apk-sha256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vevor-poco-063-apk
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android-compile.log
+            apk-sha256.txt
+          if-no-files-found: warn

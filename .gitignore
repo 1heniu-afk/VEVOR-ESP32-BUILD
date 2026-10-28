@@ -1,0 +1,14 @@
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.env
+.env*
+local.properties
+.gradle/
+**/build/
+*.apk
+*.bin
+secrets/
+private/
