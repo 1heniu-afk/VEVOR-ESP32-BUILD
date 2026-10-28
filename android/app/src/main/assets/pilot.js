@@ -10,7 +10,25 @@ function render(o){state=o;$('room').textContent=value(o.regulationTemp,'°C');$
 function read(){if(window.PilotNative)PilotNative.read();}
 function command(c){if(!window.PilotNative)return log('Brak mostu Android');PilotNative.send(c);log('Wysłano: '+(c.startsWith('KEY:')?'KEY:********':c));setTimeout(read,700);}
 function clear(){$('conn').textContent='Rozłączony';log('Rozłączono');}
-window.__pilotConn=function(s){$('conn').textContent=s;log(s);};
+window.__pilotConn=function(s){
+  $('conn').textContent=s;
+  log(s);
+  // BLE can disconnect while the last ECU status still says HEATING/CONNECTED.
+  // Never show that cached reading as live data after losing ESP32.
+  if(s!=='ESP32 gotowy'){
+    const stopAlarm=state && state.stopUncertain;
+    $('health').textContent='BRAK AKTUALNEGO POŁĄCZENIA ESP32 — DANE NIEAKTUALNE'+
+      (stopAlarm?' · STOP NIEPOTWIERDZONY — SPRAWDŹ PIEC':'');
+    $('health').className='warn';
+    $('room').textContent='—';
+    $('case').textContent='—';
+    $('outside').textContent='—';
+    $('heaterstate').textContent='BRAK DANYCH';
+    $('gear').textContent='—';
+    $('alpine').textContent='Alpejski: brak aktualnego stanu';
+    state=null;
+  }
+};
 window.__pilotStatus=function(raw){try{render(JSON.parse(raw));}catch(e){log('Błąd raportu JSON: '+e.message)}};
 window.__pilotLog=function(s){log(s);};
 $('connect').onclick=()=>{if(window.PilotNative)PilotNative.connect();};
