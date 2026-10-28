@@ -1,0 +1,1 @@
+Naprawiono BLEOTA 1.0.6: setKey() zwraca false przy poprawnej weryfikacji klucza PEM. Ta poprawka nie wyłącza zabezpieczenia RSA OTA.
